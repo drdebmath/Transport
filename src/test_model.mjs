@@ -46,6 +46,16 @@ assert(e3.netLevelPct > real.gdpLevelUpliftPct, "full scenario out-lifts the sma
 const agree = planAgreement(model, corridorsReal);
 assert(agree.matchedCount >= 0 && agree.matchedCount <= real.corridorCount, "agreement in range");
 
+// twin city pairs: members fuse into one node, billed as the primary, and the
+// fused node anchors the network where a lone primary would have fallen off it.
+const twins = load("twins.json");
+const twinModel = computeScenario({ ...data, corridorsReal, twins });
+const tByName = (n) => twinModel.cities.find((c) => c.name === n);
+assert(!tByName("Arrah"), "twin secondary (Arrah) fused away");
+assert(tByName("Patna")?.twinMembers?.includes("Arrah"), "Patna carries Arrah as a twin member");
+const patnaId = tByName("Patna").id;
+assert(twinModel.railEdges.some((e) => e.phase === 1 && (e.from === patnaId || e.to === patnaId)), "fused Patna anchors a phase-1 trunk line");
+
 console.log(`ok: model checks pass (${ms} ms)`);
 console.log(`  scenario: ${model.hsrRoutes.length} lines, ${model.railEdges.length} segments`);
 console.log(`  full network: ${Math.round(m3.trackKm).toLocaleString()} km, ${m3.citiesServed} cities, ` +

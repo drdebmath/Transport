@@ -28,12 +28,12 @@ async function loadJSON(f) {
 }
 
 (async function main() {
-  const [cities, flights, geo, economy, corridorsReal, sources] = await Promise.all(
-    ["cities.json", "flights.json", "geo_india.json", "economy.json", "corridors_real.json", "sources.json"].map(loadJSON),
+  const [cities, flights, geo, economy, corridorsReal, sources, twins] = await Promise.all(
+    ["cities.json", "flights.json", "geo_india.json", "economy.json", "corridors_real.json", "sources.json", "twins.json"].map(loadJSON),
   );
   // compute on next frame so the "Computing…" message paints first
   await new Promise((r) => setTimeout(r, 30));
-  const model = computeScenario({ cities, flights, geo, corridorsReal });
+  const model = computeScenario({ cities, flights, geo, corridorsReal, twins });
   const real = realPlanMetrics(corridorsReal, model.realEconomics);
   const agreement = planAgreement(model, corridorsReal);
   $("loading").style.display = "none";

@@ -166,6 +166,36 @@ function buildInsideIndia(mapLines) {
   };
 }
 
+// Twin city pairs: cities that are one functional metro but sit too far apart
+// (or geometrically split) for the automatic 40 km megalopolis merge to do the
+// right thing — e.g. Patna & Arrah (47.6 km, one Ganga corridor). Unlike a plain
+// merge (which parks the node on the dominant city and can fall off the trunk),
+// a twin pair fuses the members into one node but lets the data pick the anchor
+// location (the on-corridor member) and the display name (the dominant city).
+//   twins.json entry: { members:[...names], name, primary?, anchorAt? }
+function applyTwinPairs(cities, twins = []) {
+  if (!twins?.length) return cities;
+  const byName = new Map(cities.map((c) => [c.name, c]));
+  const removed = new Set();
+  const fused = [];
+  for (const twin of twins) {
+    const members = (twin.members || []).map((n) => byName.get(n)).filter(Boolean);
+    if (members.length < 2) continue; // both must be present to fuse
+    const primary = byName.get(twin.primary ?? twin.members[0]) ?? members[0];
+    const anchor = byName.get(twin.anchorAt ?? twin.primary ?? twin.members[0]) ?? primary;
+    for (const m of members) removed.add(m.id);
+    fused.push({
+      ...primary, // keep id, state, airport, traffic from the dominant city
+      name: twin.name ?? primary.name,
+      lat: anchor.lat, lon: anchor.lon,
+      population: members.reduce((s, c) => s + c.population, 0),
+      cityGdpProxyCrore: round(members.reduce((s, c) => s + c.cityGdpProxyCrore, 0), 2),
+      twinMembers: members.map((c) => c.name),
+    });
+  }
+  return [...cities.filter((c) => !removed.has(c.id)), ...fused];
+}
+
 function buildDesignNodes(inputCities) {
   const sorted = [...inputCities].sort(
     (a, b) => b.population - a.population || a.name.localeCompare(b.name),
@@ -584,7 +614,7 @@ export function corridorNetworkEconomics(corridors, cities, flightEdges, { fligh
 
 // --- orchestration: cities + flights + geo -> full scenario model ---
 export function computeScenario(data, { wait = WAIT_OPTIONS[0] } = {}) {
-  const cities = data.cities;
+  const cities = applyTwinPairs(data.cities, data.twins);
   const flightEdges = data.flights.edges;
   const domesticAirports = data.flights.airports;
 
