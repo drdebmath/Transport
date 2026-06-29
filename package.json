@@ -1,0 +1,10 @@
+{
+  "name": "india-future-mobility",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static India HSR scenario-vs-real site. No build step.",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "test": "node src/test_model.mjs"
+  }
+}

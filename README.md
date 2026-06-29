@@ -1,47 +1,62 @@
-# India Future Mobility Planner
+# India Future Mobility — Scenario vs Real HSR
 
-Interactive scenario model comparing Indian city-center journeys by flight,
-conventional train, high-speed rail (HSR), and hybrid flight/HSR paths.
+A self-contained static site that models a high-speed-rail **scenario** for India
+and overlays it against the **real and proposed** bullet-train corridors for
+contrast. The scenario network is recomputed in your browser from open data; the
+real plan is the actual NHSRCL / Union Budget 2026-27 programme.
 
 **Live:** https://drdebmath.github.io/Transport/
 
 ## What it shows
 
-- A 3D map of India with four views: direct flight paths, GDP-proxy towers, a
-  population density-spike field, and proposed HSR corridors as a flat phase map.
-- HSR corridors as demand-flow through-lines in three cumulative build phases
-  (trunk / regional / feeder), with per-segment travel times.
-- A cost and economy panel: network track length, build cost, and modeled GDP
-  growth rate for the selected phase.
-- A sortable corridor table ranking each line by carried demand, population
-  served, economic impact, and time saved.
-- Sliders for airport transfer wait and HSR economic-impact factor.
+- A 3D map of India with switchable overlays: modeled **Scenario HSR** (demand
+  network in three build phases), **Real HSR** (MAHSR drawn through its 12 actual
+  stations + every approved/DPR/proposed corridor), **Contrast** (real corridors
+  bright over the dimmed scenario), **GDP** and **Population** spike fields, and
+  direct **Flights**.
+- A scenario-vs-real comparison panel (track km, cost, cities served, GDP bonus)
+  and how many real corridors the demand model independently picks.
+- A corridor table with modeled HSR time, best current option, time saved, and
+  population served. Sliders for build phase and economic impact factor.
 
-## How journeys are timed
+## Architecture
 
-- Conventional train: 50 km/h over bent city-center distance.
-- HSR: 200 km/h average plus a fixed 20-minute station overhead per journey.
-- Flights: city-center airport access, 60 min before departure, flight time,
-  30 min after arrival, and destination access; connections add a 1–3 h transfer
-  wait.
-- **Gain** is the time HSR saves versus the best current option — today's fastest
-  of train or flight — not just the slow baseline train.
+No build step, no framework, no CDN — open `index.html` over any static server.
 
-## Cost and economy model
+```
+data/                  source data, split by type (JSON)
+  cities.json          230 cities: coords, population, state GDP proxy, airport access
+  flights.json         airports + direct flight edges
+  geo_india.json       India outline + state lines (Survey of India / Natural Earth)
+  corridors_real.json  MAHSR (12 stations) + 15 proposed corridors + status colors
+  economy.json         cost basis + economy/speed constants
+  sources.json         data provenance + modeling assumptions
+src/
+  model.js             scenario model — in-browser port of the original Node build
+                       (Gabriel graph -> gravity demand -> flow -> stitched lines ->
+                       km-budget phases + coverage connectors; all-pairs journey
+                       times; scored corridor gains). Pure, no DOM.
+  app.js               Three.js 3D map, overlays, controls, comparison panel, tables
+  test_model.mjs       node self-check for the model
+vendor/                three.js (local copy: three.module.js + three.core.min.js)
+index.html             page shell + styles
+```
 
-- Build cost from the Mumbai–Ahmedabad bullet train: about Rs 1,08,000 crore for
-  508 km (~Rs 212.6 crore/km). Phase cost = corridor HSR length × per-km cost.
-- Economy assumes 6% baseline GDP growth, plus 0.5% per 1,000 km of HSR in service.
-- City GDP is a state per-capita × population proxy, since city-level GDP is not
-  consistently available.
+## Run / test
 
-## Data sources
+```
+python3 -m http.server 8000      # then open http://localhost:8000/
+node src/test_model.mjs          # validate the scenario model
+```
 
-- City coordinates and population: GeoNames India.
-- State names: GeoNames admin-1 table.
-- Flight routes and carriers: Jonty airline-route-data.
-- State economic data: MoSPI state-wise SDP workbook (15 March 2024).
-- India map: Survey of India.
-- Cost basis: NHSRCL Mumbai–Ahmedabad bullet train project.
+## Data notes
 
-The HSR network is a modeled demand-flow scenario, not an official rail plan.
+- The HSR scenario is a **modeled demand network**, not an official plan. Only the
+  Mumbai–Ahmedabad corridor is drawn from its surveyed 12-station alignment; other
+  real corridors use real endpoints/length with a schematic path through major
+  cities.
+- HSR/train times are modeled at 200 / 50 km/h; cost uses the Mumbai–Ahmedabad
+  basis (~₹212.6 cr/km). GDP uplift is a market-access elasticity model calibrated
+  to Japan Shinkansen & China HSR evidence — see [`ECONOMIC_MODEL.md`](ECONOMIC_MODEL.md).
+- Journey times use the default 60-min connection wait. See `data/sources.json`
+  for full provenance and assumptions.

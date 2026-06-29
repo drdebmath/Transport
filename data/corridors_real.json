@@ -1,0 +1,279 @@
+{
+  "statusMeta": {
+    "under-construction": { "label": "Under construction", "color": "#18e0c4" },
+    "approved": { "label": "Approved / DPR cleared", "color": "#ffd166" },
+    "dpr": { "label": "DPR under preparation", "color": "#f7895b" },
+    "proposed": { "label": "Proposed (Budget 2026-27)", "color": "#b388ff" }
+  },
+  "corridors": [
+    {
+      "id": "mumbai-ahmedabad",
+      "name": "Mumbai–Ahmedabad (MAHSR)",
+      "status": "under-construction",
+      "lengthKm": 508,
+      "topSpeedKmh": 320,
+      "targetYear": "2028",
+      "exact": true,
+      "note": "India's first bullet train. 12 stations, NHSRCL, ~₹1.08 lakh crore.",
+      "stations": [
+        { "name": "Mumbai BKC", "lon": 72.866, "lat": 19.066 },
+        { "name": "Thane (Shilphata)", "lon": 73.018, "lat": 19.156 },
+        { "name": "Virar", "lon": 72.811, "lat": 19.456 },
+        { "name": "Boisar", "lon": 72.751, "lat": 19.801 },
+        { "name": "Vapi", "lon": 72.913, "lat": 20.371 },
+        { "name": "Bilimora", "lon": 72.961, "lat": 20.768 },
+        { "name": "Surat", "lon": 72.792, "lat": 21.207 },
+        { "name": "Bharuch", "lon": 72.97, "lat": 21.703 },
+        { "name": "Vadodara", "lon": 73.181, "lat": 22.307 },
+        { "name": "Anand/Nadiad", "lon": 72.931, "lat": 22.557 },
+        { "name": "Ahmedabad", "lon": 72.601, "lat": 23.027 },
+        { "name": "Sabarmati", "lon": 72.58, "lat": 23.083 }
+      ]
+    },
+    {
+      "id": "delhi-varanasi",
+      "name": "Delhi–Varanasi",
+      "status": "approved",
+      "lengthKm": 865,
+      "topSpeedKmh": 320,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "Most advanced new corridor; DPR submitted 2020. Spur to Ayodhya.",
+      "stations": [
+        { "name": "Delhi", "lon": 77.21, "lat": 28.61 },
+        { "name": "Greater Noida", "lon": 77.51, "lat": 28.47 },
+        { "name": "Mathura", "lon": 77.67, "lat": 27.49 },
+        { "name": "Agra", "lon": 78.01, "lat": 27.18 },
+        { "name": "Etawah", "lon": 79.02, "lat": 26.78 },
+        { "name": "Kanpur", "lon": 80.33, "lat": 26.45 },
+        { "name": "Lucknow", "lon": 80.95, "lat": 26.85 },
+        { "name": "Prayagraj", "lon": 81.85, "lat": 25.44 },
+        { "name": "Varanasi", "lon": 82.97, "lat": 25.32 }
+      ]
+    },
+    {
+      "id": "lucknow-ayodhya",
+      "name": "Lucknow–Ayodhya spur",
+      "status": "approved",
+      "lengthKm": 135,
+      "topSpeedKmh": 320,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "Branch off the Delhi–Varanasi corridor.",
+      "stations": [
+        { "name": "Lucknow", "lon": 80.95, "lat": 26.85 },
+        { "name": "Ayodhya", "lon": 82.2, "lat": 26.8 }
+      ]
+    },
+    {
+      "id": "mumbai-hyderabad",
+      "name": "Mumbai–Hyderabad",
+      "status": "approved",
+      "lengthKm": 671,
+      "topSpeedKmh": 320,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "Approved corridor via Pune and Solapur.",
+      "stations": [
+        { "name": "Mumbai", "lon": 72.88, "lat": 19.07 },
+        { "name": "Pune", "lon": 73.86, "lat": 18.52 },
+        { "name": "Solapur", "lon": 75.91, "lat": 17.66 },
+        { "name": "Kalaburagi", "lon": 76.83, "lat": 17.33 },
+        { "name": "Hyderabad", "lon": 78.47, "lat": 17.39 }
+      ]
+    },
+    {
+      "id": "chennai-bengaluru",
+      "name": "Chennai–Bengaluru",
+      "status": "approved",
+      "lengthKm": 306,
+      "topSpeedKmh": 320,
+      "targetYear": "2032",
+      "exact": false,
+      "note": "Land surveys Chennai–Kolar complete; extension towards Mysuru planned.",
+      "stations": [
+        { "name": "Chennai", "lon": 80.27, "lat": 13.08 },
+        { "name": "Kolar", "lon": 78.13, "lat": 13.14 },
+        { "name": "Bengaluru", "lon": 77.59, "lat": 12.97 }
+      ]
+    },
+    {
+      "id": "hyderabad-bengaluru",
+      "name": "Hyderabad–Bengaluru",
+      "status": "approved",
+      "lengthKm": 618,
+      "topSpeedKmh": 320,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "Approved corridor via Kurnool and Anantapur.",
+      "stations": [
+        { "name": "Hyderabad", "lon": 78.47, "lat": 17.39 },
+        { "name": "Kurnool", "lon": 78.01, "lat": 15.83 },
+        { "name": "Anantapur", "lon": 77.6, "lat": 14.68 },
+        { "name": "Hindupur", "lon": 77.49, "lat": 13.83 },
+        { "name": "Bengaluru", "lon": 77.59, "lat": 12.97 }
+      ]
+    },
+    {
+      "id": "delhi-ahmedabad",
+      "name": "Delhi–Ahmedabad",
+      "status": "dpr",
+      "lengthKm": 886,
+      "topSpeedKmh": 320,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "DPR under preparation; via Jaipur and Udaipur.",
+      "stations": [
+        { "name": "Delhi", "lon": 77.21, "lat": 28.61 },
+        { "name": "Jaipur", "lon": 75.79, "lat": 26.91 },
+        { "name": "Ajmer", "lon": 74.64, "lat": 26.45 },
+        { "name": "Udaipur", "lon": 73.71, "lat": 24.58 },
+        { "name": "Himmatnagar", "lon": 72.96, "lat": 23.6 },
+        { "name": "Ahmedabad", "lon": 72.58, "lat": 23.03 }
+      ]
+    },
+    {
+      "id": "delhi-amritsar",
+      "name": "Delhi–Amritsar",
+      "status": "dpr",
+      "lengthKm": 480,
+      "topSpeedKmh": 320,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "DPR under preparation; via Chandigarh region and Ludhiana.",
+      "stations": [
+        { "name": "Delhi", "lon": 77.21, "lat": 28.61 },
+        { "name": "Sonipat", "lon": 77.02, "lat": 28.99 },
+        { "name": "Panipat", "lon": 76.97, "lat": 29.39 },
+        { "name": "Karnal", "lon": 76.99, "lat": 29.69 },
+        { "name": "Ambala", "lon": 76.78, "lat": 30.38 },
+        { "name": "Ludhiana", "lon": 75.85, "lat": 30.9 },
+        { "name": "Jalandhar", "lon": 75.58, "lat": 31.33 },
+        { "name": "Amritsar", "lon": 74.87, "lat": 31.63 }
+      ]
+    },
+    {
+      "id": "varanasi-kolkata",
+      "name": "Varanasi–Kolkata",
+      "status": "dpr",
+      "lengthKm": 711,
+      "topSpeedKmh": 320,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "DPR under preparation; via Patna and Asansol.",
+      "stations": [
+        { "name": "Varanasi", "lon": 82.97, "lat": 25.32 },
+        { "name": "Patna", "lon": 85.14, "lat": 25.59 },
+        { "name": "Asansol", "lon": 86.99, "lat": 23.68 },
+        { "name": "Kolkata (Howrah)", "lon": 88.31, "lat": 22.57 }
+      ]
+    },
+    {
+      "id": "chennai-hyderabad",
+      "name": "Chennai–Hyderabad",
+      "status": "proposed",
+      "lengthKm": 745,
+      "topSpeedKmh": 320,
+      "targetYear": null,
+      "exact": false,
+      "note": "Budget 2026-27; final alignment submitted to Tamil Nadu Nov 2025.",
+      "stations": [
+        { "name": "Chennai", "lon": 80.27, "lat": 13.08 },
+        { "name": "Hyderabad", "lon": 78.47, "lat": 17.39 }
+      ]
+    },
+    {
+      "id": "nagpur-varanasi",
+      "name": "Nagpur–Varanasi",
+      "status": "proposed",
+      "lengthKm": 855,
+      "topSpeedKmh": 320,
+      "targetYear": "2032",
+      "exact": false,
+      "note": "Budget 2026-27; via Jabalpur and Prayagraj.",
+      "stations": [
+        { "name": "Nagpur", "lon": 79.09, "lat": 21.15 },
+        { "name": "Jabalpur", "lon": 79.95, "lat": 23.18 },
+        { "name": "Katni", "lon": 80.4, "lat": 23.83 },
+        { "name": "Rewa", "lon": 81.3, "lat": 24.53 },
+        { "name": "Prayagraj", "lon": 81.85, "lat": 25.44 },
+        { "name": "Varanasi", "lon": 82.97, "lat": 25.32 }
+      ]
+    },
+    {
+      "id": "amritsar-jammu",
+      "name": "Amritsar–Jammu",
+      "status": "proposed",
+      "lengthKm": 190,
+      "topSpeedKmh": 320,
+      "targetYear": "2032",
+      "exact": false,
+      "note": "Budget 2026-27; via Pathankot.",
+      "stations": [
+        { "name": "Amritsar", "lon": 74.87, "lat": 31.63 },
+        { "name": "Pathankot", "lon": 75.65, "lat": 32.27 },
+        { "name": "Jammu", "lon": 74.86, "lat": 32.73 }
+      ]
+    },
+    {
+      "id": "siliguri-guwahati",
+      "name": "Siliguri–Guwahati",
+      "status": "proposed",
+      "lengthKm": 850,
+      "topSpeedKmh": 320,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "Budget 2026-27; northeast connectivity corridor.",
+      "stations": [
+        { "name": "Siliguri", "lon": 88.43, "lat": 26.73 },
+        { "name": "Guwahati", "lon": 91.75, "lat": 26.14 }
+      ]
+    },
+    {
+      "id": "pune-nashik",
+      "name": "Pune–Nashik",
+      "status": "proposed",
+      "lengthKm": 235,
+      "topSpeedKmh": 200,
+      "targetYear": null,
+      "exact": false,
+      "note": "Budget 2026-27; semi-high-speed (200 km/h).",
+      "stations": [
+        { "name": "Pune", "lon": 73.86, "lat": 18.52 },
+        { "name": "Nashik", "lon": 73.79, "lat": 19.99 }
+      ]
+    },
+    {
+      "id": "ahmedabad-rajkot",
+      "name": "Ahmedabad–Rajkot",
+      "status": "proposed",
+      "lengthKm": 225,
+      "topSpeedKmh": 220,
+      "targetYear": null,
+      "exact": false,
+      "note": "Budget 2026-27; semi-high-speed (220 km/h).",
+      "stations": [
+        { "name": "Ahmedabad", "lon": 72.58, "lat": 23.03 },
+        { "name": "Rajkot", "lon": 70.8, "lat": 22.3 }
+      ]
+    },
+    {
+      "id": "thiruvananthapuram-kannur",
+      "name": "Thiruvananthapuram–Kannur",
+      "status": "proposed",
+      "lengthKm": 430,
+      "topSpeedKmh": 200,
+      "targetYear": "2031",
+      "exact": false,
+      "note": "Budget 2026-27; Kerala coastal corridor (200 km/h).",
+      "stations": [
+        { "name": "Thiruvananthapuram", "lon": 76.95, "lat": 8.52 },
+        { "name": "Kollam", "lon": 76.6, "lat": 8.89 },
+        { "name": "Kochi", "lon": 76.27, "lat": 9.93 },
+        { "name": "Thrissur", "lon": 76.21, "lat": 10.52 },
+        { "name": "Kozhikode", "lon": 75.78, "lat": 11.25 },
+        { "name": "Kannur", "lon": 75.37, "lat": 11.87 }
+      ]
+    }
+  ]
+}

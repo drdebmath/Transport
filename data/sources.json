@@ -1,0 +1,78 @@
+{
+  "datasetSources": [
+    {
+      "label": "GeoNames India dump",
+      "href": "https://download.geonames.org/export/dump/IN.zip"
+    },
+    {
+      "label": "Jonty airline-route-data",
+      "href": "https://github.com/Jonty/airline-route-data"
+    },
+    {
+      "label": "MoSPI State-wise SDP as on 15 March 2024",
+      "href": "https://mospi.gov.in/sites/default/files/press_releases_statements/State_wise_SDP_as_on_15032024.xls"
+    },
+    {
+      "label": "Survey of India outline via Datameet maps",
+      "href": "https://github.com/datameet/maps"
+    },
+    {
+      "label": "Natural Earth Admin-1 States and Provinces",
+      "href": "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/"
+    },
+    {
+      "label": "World Bank China HSR development",
+      "href": "https://documents1.worldbank.org/curated/en/933411559841476316/pdf/Chinas-High-Speed-Rail-Development.pdf"
+    },
+    {
+      "label": "JR Central Shinkansen overview",
+      "href": "https://global.jr-central.co.jp/en/company/about_shinkansen/"
+    },
+    {
+      "label": "NHSRCL Mumbai-Ahmedabad bullet train project",
+      "href": "https://nhsrcl.in/en/project/mumbai-ahmedabad-bullet-train"
+    }
+  ],
+  "corridorSources": [
+    {
+      "label": "Wikipedia: List of high-speed railway lines in India",
+      "href": "https://en.wikipedia.org/wiki/List_of_high-speed_railway_lines_in_India"
+    },
+    {
+      "label": "Wikipedia: Mumbai–Ahmedabad high-speed rail corridor",
+      "href": "https://en.wikipedia.org/wiki/Mumbai%E2%80%93Ahmedabad_high-speed_rail_corridor"
+    },
+    {
+      "label": "NHSRCL: Mumbai-Ahmedabad bullet train project",
+      "href": "https://nhsrcl.in/en/project/mumbai-ahmedabad-bullet-train"
+    },
+    {
+      "label": "PIB: High-Speed Rail Corridors in India",
+      "href": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2226302&reg=3&lang=1"
+    },
+    {
+      "label": "Union Budget 2026-27 HSR corridor announcements (news roundup)",
+      "href": "https://swarajyamag.com/news-brief/budget-2026-fm-sitharaman-announces-seven-high-speed-rail-corridors-heres-what-we-know-about-their-survey-status"
+    }
+  ],
+  "assumptions": [
+    "Traffic is a city-center airport-access proxy, not live traffic telemetry.",
+    "Baseline train is modeled at 50 km/h over bent city-center distance.",
+    "High-speed rail is a candidate-corridor scenario network, not an existing service map.",
+    "Candidate corridors are ranked by demand, GDP proxy, population capture, and distance suitability, with a cap on repeated endpoint dominance.",
+    "Nearby cities can be added as stops only when the resulting HSR travel time stays within 20% of the direct city-pair HSR time.",
+    "The physical HSR network reuses already-built shared track whenever a selected city-pair connection remains within the 20% detour bound; otherwise it adds the shortest candidate path needed.",
+    "Top HSR routes are ranked by weighted time saved, endpoint population served, and a city GDP proxy multiplied by the selected HSR impact factor.",
+    "Cities above 300k population are standalone build cities; cities between 100k and 300k are merged into the nearest build city within 50 km to form a megapolis, named after its largest city, with the combined population.",
+    "Known bad GeoNames records, where a village or revenue taluk carries a district-level population, are filtered out before the build.",
+    "City GDP proxy uses state per-capita domestic product multiplied by city population where city-level GDP is unavailable.",
+    "Top routes are split into three build phases of 50, 100, and 150 lines for cost and growth snapshots.",
+    "Build cost uses the Mumbai-Ahmedabad bullet train basis of about Rs 1,08,000 crore for 508 km (~Rs 212.6 crore per km).",
+    "Economy assumes 6% baseline GDP growth plus 0.5% extra for every 1,000 km of high-speed rail brought into service.",
+    "India outline uses the Survey of India boundary (via Datameet), so Jammu & Kashmir, Ladakh, and Arunachal Pradesh follow the full Government of India claim; internal state lines come from Natural Earth, with the northern union territories left to the official outline.",
+    "Rail edge distance is great-circle city-center distance multiplied by 1.2.",
+    "Flights add 60 minutes before departure and 30 minutes after arrival, plus city-center access and egress.",
+    "Flight connections add the selected airport wait only after arriving at a transfer airport.",
+    "Regional inclusions add smaller cities in Odisha, the northeast, hill states, and selected underrepresented regions."
+  ]
+}
