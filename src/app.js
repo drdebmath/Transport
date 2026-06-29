@@ -100,6 +100,11 @@ function setupScene(container, geo, model) {
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
   const home = { radius: Math.hypot(14, 16), theta: 0, phi: Math.acos(14 / Math.hypot(14, 16)) };
   const orbit = { ...home, target: new THREE.Vector3(0, 0, 0) };
+  // per-view tilt: near top-down "front" map for line layers, slanted for 3D towers.
+  // phi = angle from vertical; small = top-down, large = horizontal.
+  orbit.targetPhi = orbit.phi;
+  const VIEW_PHI = { gdp: 0.92, population: 0.92 }; // others fall back to front
+  const FRONT_PHI = 0.18;
   const updateCamera = () => {
     const s = Math.sin(orbit.phi);
     camera.position.set(
@@ -123,9 +128,9 @@ function setupScene(container, geo, model) {
   // base map
   const baseGroup = new THREE.Group();
   scene.add(baseGroup);
-  const fillMat = new THREE.MeshStandardMaterial({ color: 0x0e1830, transparent: true, opacity: 0.85, roughness: 0.95 });
-  const outlineMat = new THREE.LineBasicMaterial({ color: 0x2b3e63, transparent: true, opacity: 0.7 });
-  const stateMat = new THREE.LineBasicMaterial({ color: 0x1c2c49, transparent: true, opacity: 0.55 });
+  const fillMat = new THREE.MeshStandardMaterial({ color: 0x1c3056, transparent: true, opacity: 0.95, roughness: 0.9 });
+  const outlineMat = new THREE.LineBasicMaterial({ color: 0x6f93d6, transparent: true, opacity: 0.95 });
+  const stateMat = new THREE.LineBasicMaterial({ color: 0x3a5489, transparent: true, opacity: 0.7 });
   for (const line of geo) {
     const proj = line.points.map(([lo, la]) => project(lo, la, 0));
     if (proj.length < 3) continue;
@@ -212,6 +217,7 @@ function setupScene(container, geo, model) {
 
   function setOverlay(state, { model, corridorsReal, agreement }) {
     clearOverlay();
+    orbit.targetPhi = VIEW_PHI[state.view] ?? FRONT_PHI;
     const drawScenario = (dim) => {
       const seen = new Set();
       for (const e of model.railEdges) {
@@ -266,6 +272,7 @@ function setupScene(container, geo, model) {
       if (drag === "rot") {
         orbit.theta -= dx * 0.005;
         orbit.phi = Math.min(Math.PI / 2.05, Math.max(0.15, orbit.phi - dy * 0.005));
+        orbit.targetPhi = orbit.phi; // manual drag wins, stop tweening
       } else {
         const panScale = orbit.radius * 0.0011;
         orbit.target.x -= dx * panScale * Math.cos(orbit.theta);
@@ -313,7 +320,14 @@ function setupScene(container, geo, model) {
   }
   new ResizeObserver(resize).observe(container);
   resize();
-  (function loop() { requestAnimationFrame(loop); renderer.render(scene, camera); })();
+  (function loop() {
+    requestAnimationFrame(loop);
+    if (Math.abs(orbit.phi - orbit.targetPhi) > 0.001) {
+      orbit.phi += (orbit.targetPhi - orbit.phi) * 0.12;
+      updateCamera();
+    }
+    renderer.render(scene, camera);
+  })();
 
   return { setOverlay };
 }
