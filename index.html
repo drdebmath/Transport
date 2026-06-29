@@ -5,8 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>India Future Mobility — Scenario vs Real HSR</title>
 <meta name="description" content="A modeled high-speed-rail scenario for India (3D demand network, GDP and population fields, time saved) overlaid against the real and proposed bullet-train corridors for contrast. Computed in the browser from open data.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="India Future Mobility — Scenario vs Real HSR">
+<meta property="og:description" content="A modeled high-speed-rail scenario for India overlaid against the real bullet-train corridors. Computed in your browser from open data.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <style>
-:root{--bg:#070b16;--panel:#101a2e;--panel2:#0c1424;--ink:#e7eefb;--mut:#8da3c8;--line:#22304d;--acc:#42f5d7}
+:root{--bg:#070b16;--panel:#101a2e;--panel2:#0c1424;--ink:#e7eefb;--mut:#8da3c8;--line:#22304d;--acc:#42f5d7;--stage1:#0d1830;--stage2:#070b16;--float:#070b16bb;--tip:#040a15ee}
+:root[data-theme=light]{--bg:#eef3fb;--panel:#ffffff;--panel2:#e7eef9;--ink:#16233f;--mut:#4a5a7a;--line:#cfdaee;--acc:#0a9486;--stage1:#aebfdd;--stage2:#cdd9ee;--float:#ffffffdd;--tip:#ffffffee}
+:root[data-theme=light] #tip{color:var(--ink)}
+:root[data-theme=light] .tabs button.active{color:#ffffff}
+:root[data-theme=light] .cmp td.r{color:#7a45e0}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
@@ -19,17 +28,17 @@ h1{font-size:24px;margin:0 0 2px}
 .ctl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
 .ctl input[type=range]{accent-color:var(--acc)}
 .ctl .val{color:var(--ink);font-weight:600;min-width:42px}
-#stage{position:relative;background:radial-gradient(120% 120% at 50% 0,#0d1830 0,#070b16 70%);border:1px solid var(--line);border-radius:14px;overflow:hidden;height:560px}
+#stage{position:relative;background:radial-gradient(120% 120% at 50% 0,var(--stage1) 0,var(--stage2) 70%);border:1px solid var(--line);border-radius:14px;overflow:hidden;height:560px}
 #map{position:absolute;inset:0}
 #map canvas{display:block;width:100%;height:100%;cursor:grab}
 #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:15px}
-#tip{position:absolute;pointer-events:none;background:#040a15ee;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;max-width:240px;display:none;z-index:5}
+#tip{position:absolute;pointer-events:none;background:var(--tip);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;max-width:240px;display:none;z-index:5}
 #tip b{color:var(--acc)}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--mut);background:#070b16bb;border:1px solid var(--line);border-radius:8px;padding:7px 10px;max-width:70%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--mut);background:var(--float);border:1px solid var(--line);border-radius:8px;padding:7px 10px;max-width:70%}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:18px;height:4px;border-radius:2px;display:inline-block}
 .legend i.dash{background:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 9px)}
-#hint{position:absolute;right:12px;bottom:10px;font-size:11px;color:var(--mut);background:#070b16bb;border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+#hint{position:absolute;right:12px;bottom:10px;font-size:11px;color:var(--mut);background:var(--float);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
 @media(max-width:780px){.grid{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
@@ -44,6 +53,15 @@ h1{font-size:24px;margin:0 0 2px}
 table.list{width:100%;border-collapse:collapse;font-size:12.5px}
 table.list th,table.list td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
 table.list th{color:var(--mut);position:sticky;top:0;background:var(--panel)}
+table.list th.sortable{cursor:pointer;user-select:none}
+table.list th.sortable:hover{color:var(--ink)}
+table.list th.sortable::after{content:"\2195";opacity:.35;margin-left:4px;font-size:11px}
+table.list th.sort-asc::after{content:"\2191";opacity:1}
+table.list th.sort-desc::after{content:"\2193";opacity:1}
+#reset{background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:11px;cursor:pointer}
+#reset:hover{color:var(--ink)}
+#theme{margin-left:auto;background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+#theme:hover{color:var(--ink)}
 table.list td.num,table.list th.num{text-align:right;white-space:nowrap}
 .scroll{max-height:340px;overflow:auto}
 .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
@@ -75,6 +93,7 @@ footer{color:var(--mut);font-size:12px;margin-top:18px}
     <input type="range" id="impact" min="0" max="4" step="1" value="0">
     <span class="val" id="impactVal">1.0×</span>
   </label>
+  <button id="theme" type="button">☀ Light</button>
 </div>
 
 <div id="stage">
@@ -82,7 +101,7 @@ footer{color:var(--mut);font-size:12px;margin-top:18px}
   <div id="loading">Computing scenario model…</div>
   <div id="tip"></div>
   <div class="legend" id="legend"></div>
-  <div id="hint">drag rotate · shift-drag pan · wheel zoom</div>
+  <div id="hint">drag rotate · shift-drag pan · wheel/pinch zoom <button id="reset" type="button">reset view</button></div>
 </div>
 
 <div class="grid">
