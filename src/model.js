@@ -809,3 +809,92 @@ export function planAgreement(model, corridorsReal) {
   }
   return { matchedIds: matched, matchedCount: matched.length };
 }
+
+// Longest journey the HSR network can carry after each phase: the weighted
+// diameter (max station-to-station travel time over all connected node pairs) of
+// the rail-only network built up to that phase. One dijkstra per network node.
+export function longestJourneyByPhase(model) {
+  const cityById = new Map(model.cities.map((c) => [c.id, c]));
+  const out = [];
+  for (const phase of [1, 2, 3]) {
+    const edgesP = model.railEdges.filter((e) => e.phase <= phase);
+    const nodeIds = [...new Set(edgesP.flatMap((e) => [e.from, e.to]))];
+    const adj = buildAdjacency({ cities: model.cities, flightEdges: [], railEdges: edgesP, waitMinutes: WAIT_OPTIONS[0], mode: "rail" });
+    let best = null;
+    for (const id of nodeIds) {
+      const { dist } = dijkstra(adj, nodeCity(id));
+      for (const oid of nodeIds) {
+        if (oid === id) continue;
+        const m = dist.get(nodeCity(oid));
+        if (Number.isFinite(m) && (!best || m > best.minutes)) best = { from: id, to: oid, minutes: m };
+      }
+    }
+    out.push(best
+      ? { phase, minutes: Math.round(best.minutes) + HSR_OVERHEAD_MINUTES, fromName: cityById.get(best.from).name, toName: cityById.get(best.to).name }
+      : { phase, minutes: null, fromName: null, toName: null });
+  }
+  return out;
+}
+
+// Per-pair journey explorer for the UI. Returns a door-to-door direct flight time
+// (ALWAYS — estimated from airport-to-airport distance when no scheduled route
+// exists), the phase-aware HSR-network time, today's best (train vs flight, from
+// the precomputed pairs), and which leg of the flight dominates.
+const FLIGHT_BLOCK_KMH = 465; // ponytail: median block speed of flightEdges (km/min·60); recompute if flight data changes
+export function pairJourney(model, fromId, toId, phase = 3) {
+  const cityById = new Map(model.cities.map((c) => [c.id, c]));
+  const from = cityById.get(fromId), to = cityById.get(toId);
+  if (!from || !to || from.id === to.id) return null;
+  const airByIata = new Map(model.airports.map((a) => [a.iata, a]));
+
+  // --- door-to-door direct flight (estimated when the route isn't scheduled) ---
+  const edge = model.flightEdges.find((e) => e.from === from.nearestAirportIata && e.to === to.nearestAirportIata)
+    || model.flightEdges.find((e) => e.from === to.nearestAirportIata && e.to === from.nearestAirportIata);
+  const fromAir = airByIata.get(from.nearestAirportIata), toAir = airByIata.get(to.nearestAirportIata);
+  let airMinutes = null;
+  if (edge) airMinutes = edge.minutes;
+  else if (fromAir && toAir) airMinutes = Math.round((haversineKm(fromAir, toAir) / FLIGHT_BLOCK_KMH) * 60);
+  const terminalMinutes = (from.airportAccessMinutes ?? 0) + FLIGHT_ENTRY_BUFFER_MINUTES
+    + FLIGHT_EXIT_BUFFER_MINUTES + (to.airportAccessMinutes ?? 0);
+  const flightDoorMinutes = airMinutes == null ? null : airMinutes + terminalMinutes;
+
+  // --- phase-aware HSR-network time (HSR lines only, edges with phase ≤ phase) ---
+  // Not every city is a network node: the model folds cities within ~40 km into one
+  // design node (e.g. Bhatpara → Kolkata). Snap each endpoint to its nearest node so
+  // every city is answerable, and report the access distance as "via <node>".
+  const nodeIds = new Set(model.railEdges.flatMap((e) => [e.from, e.to]));
+  const snapToNode = (c) => {
+    if (nodeIds.has(c.id)) return { city: c, km: 0 };
+    let best = null;
+    for (const id of nodeIds) { const n = cityById.get(id); if (!n) continue; const d = haversineKm(c, n); if (!best || d < best.km) best = { city: n, km: d }; }
+    return best;
+  };
+  const fromNode = snapToNode(from), toNode = snapToNode(to);
+  const edgesP = model.railEdges.filter((e) => e.phase <= phase);
+  const railAdj = buildAdjacency({ cities: model.cities, flightEdges: [], railEdges: edgesP, waitMinutes: WAIT_OPTIONS[0], mode: "rail" });
+  const railRaw = fromNode && toNode && fromNode.city.id !== toNode.city.id
+    ? minutesTo(dijkstra(railAdj, nodeCity(fromNode.city.id)).dist.get(nodeCity(toNode.city.id)))
+    : null;
+  const hsrMinutes = railRaw == null ? null : railRaw + HSR_OVERHEAD_MINUTES;
+  const fromVia = fromNode && fromNode.km >= 1 ? { name: fromNode.city.name, km: Math.round(fromNode.km) } : null;
+  const toVia = toNode && toNode.km >= 1 ? { name: toNode.city.name, km: Math.round(toNode.km) } : null;
+  // surface access: driving from an off-network city to its node's station costs
+  // time at the city's own (congested) traffic speed — add it to the HSR door-to-door.
+  const accessMin = (city, via) => (via ? Math.round((via.km / (city.trafficSpeedKmh || 30)) * 60) : 0);
+  const fromAccessMinutes = accessMin(from, fromVia);
+  const toAccessMinutes = accessMin(to, toVia);
+  const hsrDoorMinutes = hsrMinutes == null ? null : hsrMinutes + fromAccessMinutes + toAccessMinutes;
+
+  // --- today's best, from the precomputed all-pairs (real network train/flight) ---
+  const pair = model.pairResults.find((p) => p.from === fromId && p.to === toId);
+  const bestNowMinutes = pair?.currentBestBaselineMinutes ?? trainMinutes(from, to, BASELINE_TRAIN_KMH);
+  const bestNowMode = pair && pair.flightMinutes != null && pair.flightMinutes <= pair.baselineTrainMinutes ? "flight" : "train";
+
+  return {
+    distanceKm: round(haversineKm(from, to), 0),
+    flightExists: !!edge, airMinutes, terminalMinutes, flightDoorMinutes,
+    flightDominant: airMinutes == null ? null : (terminalMinutes > airMinutes ? "terminal" : "air"),
+    phase, hsrMinutes, hsrDoorMinutes, fromVia, toVia, fromAccessMinutes, toAccessMinutes,
+    bestNowMinutes, bestNowMode,
+  };
+}

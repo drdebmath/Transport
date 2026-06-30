@@ -11,70 +11,135 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <style>
-:root{--bg:#070b16;--panel:#101a2e;--panel2:#0c1424;--ink:#e7eefb;--mut:#8da3c8;--line:#22304d;--acc:#42f5d7;--stage1:#0d1830;--stage2:#070b16;--float:#070b16bb;--tip:#040a15ee}
-:root[data-theme=light]{--bg:#eef3fb;--panel:#ffffff;--panel2:#e7eef9;--ink:#16233f;--mut:#4a5a7a;--line:#cfdaee;--acc:#0a9486;--stage1:#aebfdd;--stage2:#cdd9ee;--float:#ffffffdd;--tip:#ffffffee}
+:root{
+  --bg:#070b16;--panel:#101a2e;--panel2:#0c1424;--ink:#e7eefb;--mut:#8da3c8;--line:#22304d;
+  --acc:#42f5d7;--acc2:#b388ff;--stage1:#0d1830;--stage2:#070b16;--float:#070b16bb;--tip:#040a15ee;
+  --radius:14px;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+:root[data-theme=light]{--bg:#eef3fb;--panel:#ffffff;--panel2:#e7eef9;--ink:#16233f;--mut:#4a5a7a;--line:#cfdaee;--acc:#0a9486;--acc2:#7a45e0;--stage1:#aebfdd;--stage2:#cdd9ee;--float:#ffffffdd;--tip:#ffffffee}
 :root[data-theme=light] #tip{color:var(--ink)}
 :root[data-theme=light] .tabs button.active{color:#ffffff}
-:root[data-theme=light] .cmp td.r{color:#7a45e0}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
-h1{font-size:24px;margin:0 0 2px}
-.lead{color:var(--mut);margin:0 0 18px;max-width:80ch}
-.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
-.tabs{display:flex;flex-wrap:wrap;gap:6px}
-.tabs button{background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 var(--sans);-webkit-text-size-adjust:100%}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:clamp(18px,4vw,30px) clamp(13px,3vw,18px) 60px}
+a{color:var(--acc)}
+
+/* ---- hero ---- */
+.hero{padding-bottom:20px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.eyebrow{display:flex;align-items:center;gap:10px;margin:0 0 14px;font:600 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--acc)}
+.eyebrow::before{content:"";width:28px;height:2px;background:var(--acc)}
+h1{font-size:clamp(26px,5.2vw,40px);line-height:1.04;letter-spacing:-.02em;font-weight:800;margin:0 0 10px}
+.lead{color:var(--mut);margin:0;max-width:72ch;font-size:clamp(14px,1.6vw,15px)}
+
+/* ---- controls ---- */
+.bar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px}
+.tabs{display:flex;gap:6px;flex:1 1 280px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{white-space:nowrap;background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:13px;transition:background .15s,color .15s,border-color .15s}
+.tabs button:hover{color:var(--ink)}
 .tabs button.active{background:var(--acc);color:#04121a;border-color:var(--acc);font-weight:700}
-.ctl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
-.ctl input[type=range]{accent-color:var(--acc)}
-.ctl .val{color:var(--ink);font-weight:600;min-width:42px}
-#stage{position:relative;background:radial-gradient(120% 120% at 50% 0,var(--stage1) 0,var(--stage2) 70%);border:1px solid var(--line);border-radius:14px;overflow:hidden;height:560px}
+.ctl{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.ctl input[type=range]{accent-color:var(--acc);width:108px}
+.ctl .val{font-family:var(--mono);color:var(--ink);font-weight:600;min-width:42px;letter-spacing:0;text-transform:none}
+#theme{margin-left:auto;background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;cursor:pointer;transition:color .15s,border-color .15s}
+#theme:hover{color:var(--ink);border-color:var(--acc)}
+
+/* ---- stage / map ---- */
+#stage{position:relative;background:radial-gradient(120% 120% at 50% 0,var(--stage1) 0,var(--stage2) 70%);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;height:clamp(360px,58vh,560px)}
 #map{position:absolute;inset:0}
-#map canvas{display:block;width:100%;height:100%;cursor:grab}
+#map canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
 #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:15px}
 #tip{position:absolute;pointer-events:none;background:var(--tip);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;max-width:240px;display:none;z-index:5}
 #tip b{color:var(--acc)}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--mut);background:var(--float);border:1px solid var(--line);border-radius:8px;padding:7px 10px;max-width:70%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--mut);background:var(--float);border:1px solid var(--line);border-radius:8px;padding:7px 10px;max-width:64%}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:18px;height:4px;border-radius:2px;display:inline-block}
 .legend i.dash{background:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 9px)}
 #hint{position:absolute;right:12px;bottom:10px;font-size:11px;color:var(--mut);background:var(--float);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+#reset{background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer;margin-left:6px}
+#reset:hover{color:var(--ink)}
+
+/* ---- rail-line divider (signature) ---- */
+.railrule{height:1px;margin:26px 0;background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent);position:relative}
+.railrule::after{content:"";position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:50%;background:var(--acc);transform:translate(-50%,-50%);box-shadow:0 0 0 4px var(--bg)}
+
+/* ---- cards ---- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.card+.card,.grid+.card,.card+.grid{margin-top:14px}
+.card h2{display:flex;align-items:center;gap:9px;font-size:15px;letter-spacing:-.01em;margin:0 0 14px}
+.card h2::before{content:"";width:3px;height:16px;border-radius:2px;background:var(--acc);flex:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:780px){.grid{grid-template-columns:1fr}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.card h2{font-size:15px;margin:0 0 10px}
-.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.metric .big{font-size:20px;font-weight:700}
-.metric .lbl{font-size:12px;color:var(--mut)}
+
+/* ---- metrics ---- */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(116px,1fr));gap:11px}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+.metric .big{font:700 22px/1.1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.metric .big.dom{font-family:var(--sans);font-size:16px;color:var(--acc);line-height:1.25}
+.metric .lbl{font-size:11.5px;color:var(--mut);margin-top:6px}
+
+/* ---- city-pair explorer ---- */
+.pair{display:flex;flex-wrap:wrap;align-items:end;gap:10px 14px}
+.pair label{flex:1 1 180px;display:flex;flex-direction:column;gap:6px;font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.pair input{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 34px 9px 11px;font:15px var(--sans);cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238da3c8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.pair input:focus{border-color:var(--acc);outline:none;cursor:text}
+.pair input::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer}
+.combo{position:relative;display:block;width:100%}
+.combo-list{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:20;display:none;list-style:none;margin:0;padding:5px;max-height:264px;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 34px -10px rgba(7,11,22,.55)}
+:root[data-theme=light] .combo-list{box-shadow:0 14px 34px -12px rgba(20,35,63,.28)}
+.combo-list.open{display:block}
+.combo-list li{padding:8px 11px;border-radius:7px;font:14px var(--sans);color:var(--ink);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;letter-spacing:0}
+.combo-list li:hover{background:var(--panel2)}
+.combo-list li.on{background:var(--acc);color:#04121a;font-weight:600}
+.combo-list li.empty,.combo-list li.empty:hover{color:var(--mut);cursor:default;background:none}
+.pair .arrow{align-self:center;color:var(--acc);font-size:18px;padding-bottom:8px}
+#pairHint{margin:10px 0 0}
+#longest{font-family:var(--mono);font-size:12px;line-height:1.7;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:14px;color:var(--mut)}
+#longest b{color:var(--ink);letter-spacing:.04em}
+
+/* ---- comparison + corridor tables ---- */
 .cmp{width:100%;border-collapse:collapse;font-size:13px}
-.cmp th,.cmp td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+.cmp th,.cmp td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
 .cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--mut)}
-.cmp td.s{color:var(--acc)} .cmp td.r{color:#b388ff}
+.cmp thead th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.cmp td.s,.cmp td.r{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.cmp td.s{color:var(--acc)} .cmp td.r{color:var(--acc2)}
+.scroll{max-height:340px;overflow:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
 table.list{width:100%;border-collapse:collapse;font-size:12.5px}
-table.list th,table.list td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
-table.list th{color:var(--mut);position:sticky;top:0;background:var(--panel)}
+table.list th,table.list td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+table.list th{color:var(--mut);position:sticky;top:0;background:var(--panel);font-size:11px;text-transform:uppercase;letter-spacing:.05em;z-index:1}
 table.list th.sortable{cursor:pointer;user-select:none}
 table.list th.sortable:hover{color:var(--ink)}
 table.list th.sortable::after{content:"\2195";opacity:.35;margin-left:4px;font-size:11px}
 table.list th.sort-asc::after{content:"\2191";opacity:1}
 table.list th.sort-desc::after{content:"\2193";opacity:1}
-#reset{background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:11px;cursor:pointer}
-#reset:hover{color:var(--ink)}
-#theme{margin-left:auto;background:var(--panel2);color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
-#theme:hover{color:var(--ink)}
 table.list td.num,table.list th.num{text-align:right;white-space:nowrap}
-.scroll{max-height:340px;overflow:auto}
+table.list td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
 .note{font-size:12px;color:var(--mut)}
-a{color:var(--acc)}
 details summary{cursor:pointer;color:var(--mut);margin-top:8px}
-footer{color:var(--mut);font-size:12px;margin-top:18px}
+footer{color:var(--mut);font-size:12px;margin-top:24px;padding-top:16px;border-top:1px solid var(--line)}
+
+@media(max-width:600px){
+  #hint{font-size:10px;padding:5px 7px}
+  .legend{max-width:72%;font-size:11px;gap:4px 12px}
+  .bar{padding:11px 12px}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>India Future Mobility — Scenario vs Real HSR</h1>
-<p class="lead">A modeled high-speed-rail scenario (demand-flow network ranked by time saved, population and economic impact) shown on a 3D map of India, overlaid against the <b>real and proposed bullet-train corridors</b> for contrast. The scenario is recomputed in your browser from open data; the real plan is the actual NHSRCL / Budget 2026-27 programme.</p>
+
+<header class="hero">
+  <p class="eyebrow">India · High-Speed Rail · in-browser model</p>
+  <h1>Future Mobility — Scenario vs the Real HSR Plan</h1>
+  <p class="lead">A modeled high-speed-rail scenario — a demand-flow network ranked by time saved, population and economic impact — drawn on a 3D map of India and overlaid against the <b>real and proposed bullet-train corridors</b>. The scenario is recomputed in your browser from open data; the real plan is the actual NHSRCL / Budget 2026-27 programme.</p>
+</header>
 
 <div class="bar">
   <div class="tabs" id="views">
@@ -89,7 +154,7 @@ footer{color:var(--mut);font-size:12px;margin-top:18px}
     <input type="range" id="phase" min="1" max="3" step="1" value="3">
     <span class="val" id="phaseVal">P3</span>
   </label>
-  <label class="ctl" id="impactCtl">Impact factor
+  <label class="ctl" id="impactCtl">Impact
     <input type="range" id="impact" min="0" max="4" step="1" value="0">
     <span class="val" id="impactVal">1.0×</span>
   </label>
@@ -101,8 +166,35 @@ footer{color:var(--mut);font-size:12px;margin-top:18px}
   <div id="loading">Computing scenario model…</div>
   <div id="tip"></div>
   <div class="legend" id="legend"></div>
-  <div id="hint">drag rotate · shift-drag pan · wheel/pinch zoom <button id="reset" type="button">reset view</button></div>
+  <div id="hint">drag rotate · shift-drag pan · pinch zoom <button id="reset" type="button">reset</button></div>
 </div>
+
+<div class="railrule"></div>
+
+<div class="card" id="explorer">
+  <h2>City-pair journey</h2>
+  <div class="pair">
+    <label>From
+      <span class="combo">
+        <input id="fromCity" role="combobox" aria-expanded="false" aria-autocomplete="list" autocomplete="off" placeholder="Select or type a city…">
+        <ul class="combo-list" id="fromList" role="listbox"></ul>
+      </span>
+    </label>
+    <span class="arrow" aria-hidden="true">→</span>
+    <label>To
+      <span class="combo">
+        <input id="toCity" role="combobox" aria-expanded="false" aria-autocomplete="list" autocomplete="off" placeholder="Select or type a city…">
+        <ul class="combo-list" id="toList" role="listbox"></ul>
+      </span>
+    </label>
+  </div>
+  <p class="note" id="pairHint">Click a box to see every city, or type to filter. ↑↓ to move, Enter to choose.</p>
+  <div class="metrics" id="pairOut" style="margin-top:14px"></div>
+  <p class="note" id="pairNote"></p>
+  <p id="longest"></p>
+</div>
+
+<div class="railrule"></div>
 
 <div class="grid">
   <div class="card">
@@ -118,13 +210,13 @@ footer{color:var(--mut);font-size:12px;margin-top:18px}
   </div>
 </div>
 
-<div class="card" style="margin-top:14px">
+<div class="card">
   <h2 id="tableTitle">Top scenario corridors</h2>
   <div class="scroll"><table class="list" id="corrTable"></table></div>
   <p class="note">Time saved is vs the best current option (fastest of today's train or flight). Impact factor re-ranks corridors by economic weight; it does not change the built network.</p>
 </div>
 
-<div class="card" style="margin-top:14px">
+<div class="card">
   <h2>Data &amp; assumptions</h2>
   <div id="sources"></div>
 </div>

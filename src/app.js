@@ -5,7 +5,7 @@
 import * as THREE from "../vendor/three.module.js";
 import {
   computeScenario, scenarioMetrics, realPlanMetrics, planAgreement,
-  haversineKm, PHASE_META, ECONOMY,
+  pairJourney, longestJourneyByPhase, haversineKm, PHASE_META, ECONOMY,
 } from "./model.js";
 
 const $ = (id) => document.getElementById(id);
@@ -72,6 +72,7 @@ async function loadJSON(f) {
     $("phase").disabled = !phaseRelevant;
     const impactRelevant = state.view !== "flights";
     $("impactCtl").style.opacity = impactRelevant ? 1 : 0.4;
+    updateExplorer(state.phase);
     writeURL();
   }
 
@@ -86,6 +87,7 @@ async function loadJSON(f) {
     themeName = themeName === "light" ? "dark" : "light";
     localStorage.setItem("theme", themeName);
     applyThemeAll();
+    render(); // rebuild corridors so the theme-aware tube tint applies
   });
   applyThemeAll();
 
@@ -114,6 +116,11 @@ async function loadJSON(f) {
     if (th && $("corrTable").contains(th)) sortTable($("corrTable"), th);
   });
   syncViews();
+
+  const updateExplorer = setupExplorer(model);
+  $("longest").innerHTML = "<b>Longest possible HSR journey</b> — " + longestJourneyByPhase(model)
+    .map((p) => `P${p.phase}: ${p.minutes == null ? "—" : `${fmtMin(p.minutes)} (${p.fromName} – ${p.toName})`}`)
+    .join(" · ");
 
   renderSources(sources);
   $("footer").textContent =
@@ -246,16 +253,28 @@ function setupScene(container, geo, model) {
     hover = [];
   }
 
+  // Light mode: neon corridor colors are darkened and de-glowed so they read on a
+  // pale background instead of washing out.
+  const tubeTint = (col) => (theme === THEMES.light ? col.clone().multiplyScalar(0.7) : col);
+  const tubeEmissive = () => (theme === THEMES.light ? 0.12 : 0.4);
+
   // WebGL ignores line width, so solid corridors are drawn as thin tubes
   // (real geometry) for visible thickness; dashed "proposed" lines stay dashes.
+  // Spheres at both ends round the caps and hide the seam where segments meet.
   function addTube(points, color, opacity, radius) {
+    const col = tubeTint(color);
     const curve = new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.04);
-    const g = new THREE.TubeGeometry(curve, Math.max(1, (points.length - 1) * 6), radius, 7, false);
-    const m = new THREE.MeshStandardMaterial({ color, transparent: true, opacity, emissive: color, emissiveIntensity: 0.4, roughness: 0.5 });
+    const g = new THREE.TubeGeometry(curve, Math.max(1, (points.length - 1) * 6), radius, 12, false);
+    const m = new THREE.MeshStandardMaterial({ color: col, transparent: true, opacity, emissive: col, emissiveIntensity: tubeEmissive(), roughness: 0.55 });
     overlay.add(new THREE.Mesh(g, m));
+    for (const end of [points[0], points[points.length - 1]]) {
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(radius * 1.1, 10, 10), m);
+      cap.position.copy(end);
+      overlay.add(cap);
+    }
   }
 
-  function addLine(a, bp, color, opacity, y, dashed, radius = 0.055) {
+  function addLine(a, bp, color, opacity, y, dashed, radius = 0.038) {
     if (dashed) {
       const g = new THREE.BufferGeometry().setFromPoints([project(a.lon, a.lat, y), project(bp.lon, bp.lat, y)]);
       const ln = new THREE.Line(g, new THREE.LineDashedMaterial({ color, transparent: true, opacity, dashSize: 0.22, gapSize: 0.16 }));
@@ -273,10 +292,10 @@ function setupScene(container, geo, model) {
       ln.computeLineDistances();
       overlay.add(ln);
     } else {
-      addTube(v, color, opacity, 0.04 + (width || 2) * 0.014);
+      addTube(v, color, opacity, 0.026 + (width || 2) * 0.009);
     }
     for (const s of v) {
-      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshBasicMaterial({ color }));
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), new THREE.MeshBasicMaterial({ color: tubeTint(color) }));
       dot.position.copy(s);
       overlay.add(dot);
     }
@@ -330,7 +349,7 @@ function setupScene(container, geo, model) {
         if (e.phase > state.phase) continue;
         const from = cityById.get(e.from), to = cityById.get(e.to);
         if (!from || !to) continue;
-        addLine(from, to, new THREE.Color(phaseColor(e.phase)), dim ? 0.32 : (e.connector ? 0.5 : 0.85), 0.22, false, e.connector ? 0.04 : 0.06);
+        addLine(from, to, new THREE.Color(phaseColor(e.phase)), dim ? 0.32 : (e.connector ? 0.5 : 0.85), 0.22, false, e.connector ? 0.028 : 0.042);
         for (const c of [from, to]) {
           if (seen.has(c.id)) continue;
           seen.add(c.id);
@@ -577,6 +596,85 @@ function renderRealTable(corridorsReal, agreement) {
       `<td class="num" data-sort="${c.stations.length}">${c.stations.length}</td><td>${matched.has(c.id) ? "✓ echoed" : "—"}</td><td class="note">${c.note}</td></tr>`;
   }).join("");
   $("corrTable").innerHTML = head + `<tbody>${body}</tbody>`;
+}
+
+// City-pair journey explorer: two datalist inputs → direct flight (estimated when
+// not scheduled), phase-aware HSR-network time, best today, and the dominant leg.
+function setupExplorer(model) {
+  const byName = new Map(model.cities.map((c) => [c.name, c]));
+  const names = [...model.cities].sort((a, b) => b.population - a.population).map((c) => c.name);
+  $("fromCity").value = names[0]; $("toCity").value = names[1]; // biggest two, so it shows on load
+  let curPhase = 3;
+
+  function recompute() {
+    const from = byName.get($("fromCity").value), to = byName.get($("toCity").value);
+    if (!from || !to || from.id === to.id) {
+      $("pairOut").innerHTML = "";
+      $("pairNote").textContent = from && to && from.id === to.id
+        ? "Pick two different cities." : "Pick two cities to compare.";
+      return;
+    }
+    const j = pairJourney(model, from.id, to.id, curPhase);
+    const dom = j.flightDominant === "terminal"
+      ? "airport access &amp; buffers" : j.flightDominant === "air" ? "in-air time" : "—";
+    // both endpoints snap to their nearest network node; note when that node isn't the city itself
+    const via = [j.fromVia && `${j.fromVia.name} (${j.fromVia.km} km)`, j.toVia && `${j.toVia.name} (${j.toVia.km} km)`].filter(Boolean);
+    const hsrLabel = j.hsrMinutes == null
+      ? `HSR network · Phase ${j.phase} (not linked)`
+      : `HSR door-to-door · Phase ${j.phase}${via.length ? ` · via ${via.join(" / ")}` : ""}`;
+    const tiles = [
+      [fmtMin(j.flightDoorMinutes), `direct flight ${j.flightExists ? "(scheduled)" : "(no route — estimated)"}`, false],
+      [fmtMin(j.hsrDoorMinutes), hsrLabel, false],
+      [fmtMin(j.bestNowMinutes), `best today · ${j.bestNowMode}`, false],
+      [dom, "dominant flight leg", true],
+    ];
+    $("pairOut").innerHTML = tiles
+      .map(([v, l, d]) => `<div class="metric"><div class="big${d ? " dom" : ""}">${v}</div><div class="lbl">${l}</div></div>`)
+      .join("");
+    // road legs into/out of the network station, priced at each city's own traffic speed
+    const road = [
+      j.fromVia && `${fmtMin(j.fromAccessMinutes)} road ${from.name} → ${j.fromVia.name} station (${Math.round(from.trafficSpeedKmh)} km/h city traffic)`,
+      j.toVia && `${fmtMin(j.toAccessMinutes)} road ${j.toVia.name} station → ${to.name} (${Math.round(to.trafficSpeedKmh)} km/h)`,
+    ].filter(Boolean);
+    $("pairNote").innerHTML =
+      `${from.name} – ${to.name}, ${fmt(j.distanceKm)} km. Direct flight is door-to-door: ` +
+      `${fmtMin(j.terminalMinutes)} airport access + buffers ${j.airMinutes == null ? "" : `+ ${fmtMin(j.airMinutes)} in-air`}. ` +
+      `HSR is door-to-door incl. a 20-min station overhead` +
+      `${road.length ? `, plus ${road.join(" and ")}` : ""}.`;
+  }
+
+  attachCombo($("fromCity"), $("fromList"), names, recompute);
+  attachCombo($("toCity"), $("toList"), names, recompute);
+  return (phase) => { curPhase = phase; recompute(); };
+}
+
+// Lightweight styled combobox over a plain input: click opens the full list,
+// typing filters, ↑/↓ + Enter pick, Esc/outside-click close. Replaces the native
+// <datalist>, which can't be styled and only suggested matches to the current text.
+function attachCombo(input, list, names, onChange) {
+  let query = "", active = -1, items = [];
+  const render = () => {
+    const f = query.trim().toLowerCase();
+    items = (f ? names.filter((n) => n.toLowerCase().includes(f)) : names).slice(0, 80);
+    list.innerHTML = items.length
+      ? items.map((n, i) => `<li role="option" data-i="${i}"${i === active ? ' class="on"' : ""}>${n}</li>`).join("")
+      : `<li class="empty">no city matches “${query}”</li>`;
+    if (active >= 0) list.children[active]?.scrollIntoView({ block: "nearest" });
+  };
+  const open = () => { list.classList.add("open"); input.setAttribute("aria-expanded", "true"); render(); };
+  const close = () => { list.classList.remove("open"); input.setAttribute("aria-expanded", "false"); active = -1; };
+  const pick = (n) => { input.value = n; query = ""; close(); onChange(); };
+  input.addEventListener("focus", () => { query = ""; active = -1; open(); });
+  input.addEventListener("input", () => { query = input.value; active = items.length ? 0 : -1; if (!list.classList.contains("open")) open(); else render(); onChange(); });
+  input.addEventListener("keydown", (e) => {
+    if (!list.classList.contains("open")) { if (e.key === "ArrowDown") open(); return; }
+    if (e.key === "ArrowDown") { active = Math.min(active + 1, items.length - 1); render(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); render(); e.preventDefault(); }
+    else if (e.key === "Enter") { if (active >= 0 && items[active]) { pick(items[active]); e.preventDefault(); } else close(); }
+    else if (e.key === "Escape") { close(); }
+  });
+  list.addEventListener("mousedown", (e) => { const li = e.target.closest("li[data-i]"); if (li) { e.preventDefault(); pick(items[+li.dataset.i]); } });
+  document.addEventListener("click", (e) => { if (!input.closest(".combo").contains(e.target)) close(); });
 }
 
 function renderSources(sources) {
